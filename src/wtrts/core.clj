@@ -6,18 +6,23 @@
 
 (defn setup-game []
   (-> {}
-      setup-keys
+      setup-keyboard
       setup-mouse))
 
 (defn update-game [state]
   (-> state
-      (update-keys [\a])
+      (update-keyboard [\a \s])
       update-mouse))
 
+(def state-for-repl (atom nil))
+
 (defn draw-game! [state]
+  (reset! state-for-repl state)
   (q/background 204)
   (when (key-is-down? state \a)
     (q/line 20 20 80 80))
+  (when (key-was-pressed? state \s)
+    (q/rect 40 40 20 20 ))
   (when (mouse-is-down? state)
     (q/ellipse (q/mouse-x) (q/mouse-y) 12 12)))
 
@@ -29,4 +34,6 @@
   :draw draw-game!
   ;:features [:keep-on-top]
   :middleware [qm/fun-mode])
+
+(deref state-for-repl)
 
