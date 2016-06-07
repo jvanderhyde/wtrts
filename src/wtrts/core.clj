@@ -5,29 +5,57 @@
             [quil.middleware :as qm]))
 
 (defn draw-farmer [e]
+  (q/stroke 0 0 0)
+  (q/fill 255 255 255)
   (q/ellipse (e :x) (e :y) 12 12 ))
 
 (defn setup-entities [state]
-  (assoc state :entities
-    [{:type :farmer :x 40 :y 40 :state :standing :selected false :draw draw-farmer}]))
+  (update state :entities conj
+    {:type :farmer :x 40 :y 40 :state :standing :draw draw-farmer :selectable true}
+    {:type :farmer :x 60 :y 40 :state :standing :draw draw-farmer :selectable true}
+    ))
+
+(defn setup-mouse-pick [state]
+  (-> state
+      (assoc :picked [])
+      (assoc :selected [])))
 
 (defn setup-game []
   (-> {}
       setup-keyboard
       setup-mouse
       setup-flags
-      setup-entities))
+      setup-entities
+      setup-mouse-pick))
 
 (defn handle-user-commands [state]
   (if (key-was-pressed? state \s)
     (add-timed-flag state :show-background 60)
     state))
 
+(defn sqr [x] (* x x))
+
+(defn mouse-pick? [state e]
+  (let [e-radius 5]
+    (< (+ (sqr (- (:x e) (mouse-x state))) (sqr (- (:y e) (mouse-y state)))) (sqr e-radius))))
+
+(defn update-mouse-pick [state]
+  (assoc state :picked
+    (filter (partial mouse-pick? state) (:entities state))))
+
+(defn update-mouse-select [state]
+  (if (and (mouse-was-pressed? state) (not (empty? (:picked state))) (:selectable (first (:picked state))))
+    (assoc-in state [:selected 0] (first (:picked state)))
+    state))
+
+
 (defn update-game [state]
   (-> state
       (update-keyboard [\a \s])
       update-mouse
       update-flags
+      update-mouse-pick
+      update-mouse-select
       handle-user-commands
       ))
 
@@ -35,6 +63,11 @@
 
 (defn draw-entity [e]
   ((:draw e) e))
+
+(defn draw-selected [e]
+    (q/no-fill)
+    (q/stroke 255 0 0)
+    (q/ellipse (:x e) (:y e) 5 5))
 
 (defn draw-game! [state]
   (reset! state-for-repl state)
@@ -44,8 +77,10 @@
     (q/line 20 20 80 80))
   (when (flag? state :show-background)
     (q/rect 40 40 20 20 ))
-  (when (mouse-is-down? state)
-    (q/ellipse (q/mouse-x) (q/mouse-y) 12 12)))
+  (when (not (empty? (:selected state)))
+    (draw-selected (get-in state [:selected 0])))
+  (when (not (empty? (:picked state)))
+    (q/ellipse 400 400 12 12)))
 
 
 (q/defsketch example

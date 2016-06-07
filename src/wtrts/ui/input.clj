@@ -32,19 +32,27 @@
 ; Mouse input
 
 (defn setup-mouse [state]
-  (merge state {:mouse { :pressed false :first-press true }}))
+  (merge state {:mouse { :pressed false :first-press true :x 0 :y 0 }}))
 
 (defn update-mouse [state]
   (-> state
       (assoc-in [:mouse :first-press] (not (get-in state [:mouse :pressed])))
-      (assoc-in [:mouse :pressed] (q/mouse-pressed?))))
+      (assoc-in [:mouse :pressed] (q/mouse-pressed?))
+      (assoc-in [:mouse :x] (q/mouse-x))
+      (assoc-in [:mouse :y] (q/mouse-y))))
 
 (defn mouse-is-down? [state]
   ((:mouse state) :pressed))
 
-(defn mouse-was-pressed? [state key-code]
+(defn mouse-was-pressed? [state]
   (and
     ((:mouse state) :pressed)
     ((:mouse state) :first-press)))
+
+(defn mouse-x [state]
+  ((:mouse state) :x))
+
+(defn mouse-y [state]
+  ((:mouse state) :y))
 
 
