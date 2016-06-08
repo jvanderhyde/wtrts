@@ -44,8 +44,9 @@
     (filter (partial mouse-pick? state) (:entities state))))
 
 (defn update-mouse-select [state]
-  (if (and (mouse-was-pressed? state) (not (empty? (:picked state))) (:selectable (first (:picked state))))
-    (assoc-in state [:selected 0] (first (:picked state)))
+  (if (mouse-was-pressed? state)
+    (assoc state :selected
+      (filter :selectable (:picked state)))
     state))
 
 
@@ -78,7 +79,7 @@
   (when (flag? state :show-background)
     (q/rect 40 40 20 20 ))
   (when (not (empty? (:selected state)))
-    (draw-selected (get-in state [:selected 0])))
+    (draw-selected (first (:selected state))))
   (when (not (empty? (:picked state)))
     (q/ellipse 400 400 12 12)))
 
