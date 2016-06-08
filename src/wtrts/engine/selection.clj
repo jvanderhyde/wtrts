@@ -25,8 +25,10 @@
 
 (defn- update-mouse-select [state]
   (if (mouse-was-pressed? state)
-    (assoc state :selected
-      (filter-entity-indices state :selectable (:picked state)))
+    (let [selectable-pick (filter-entity-indices state :selectable (:picked state))]
+      (if (not (empty? selectable-pick))
+        (assoc state :selected selectable-pick)
+        state))
     state))
 
 (defn update-mouse-selection [state]
@@ -34,4 +36,11 @@
       update-mouse-pick
       update-mouse-select))
 
-(filter-entity-indices {:entities [{:selectable false} {:selectable true}]} :selectable [0])
+(filter-entity-indices {:entities [{:selectable true} {:selectable true}]} :selectable [0])
+
+(update-mouse-select {:entities [{:selectable true} {:selectable true}]
+                      :mouse {:pressed true, :first-press true, :x 62, :y 41}
+                      :picked [1]})
+(update-mouse-select {:entities [{:selectable true} {:selectable true}]
+                      :mouse {:pressed true, :first-press true, :x 62, :y 41}
+                      :picked [] :selected [1]})
