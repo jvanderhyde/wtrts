@@ -1,10 +1,17 @@
 (ns wtrts.engine.selection
   (:require [wtrts.ui.input :refer :all]))
 
+
 (defn setup-mouse-selection [state]
-  (-> state
-      (assoc :picked [])
-      (assoc :selected [])))
+  state)
+
+
+(defn- filter-entities-indexed [state pred]
+  (keep-indexed #(when (pred %2) %1) (:entities state)))
+
+(defn- filter-entity-indices [state pred coll]
+  (filter (fn [i] (pred (get-in state [:entities i]))) coll))
+
 
 (defn- sqr [x] (* x x))
 
@@ -14,15 +21,17 @@
 
 (defn- update-mouse-pick [state]
   (assoc state :picked
-    (filter (partial mouse-pick? state) (:entities state))))
+    (filter-entities-indexed state (partial mouse-pick? state))))
 
 (defn- update-mouse-select [state]
   (if (mouse-was-pressed? state)
     (assoc state :selected
-      (filter :selectable (:picked state)))
+      (filter-entity-indices state :selectable (:picked state)))
     state))
 
 (defn update-mouse-selection [state]
   (-> state
       update-mouse-pick
       update-mouse-select))
+
+(filter-entity-indices {:entities [{:selectable false} {:selectable true}]} :selectable [0])

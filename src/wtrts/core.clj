@@ -14,7 +14,7 @@
   (q/ellipse (e :x) (e :y) 12 12 ))
 
 (defn setup-entities [state]
-  (update state :entities conj
+  (update (assoc state :entities []) :entities conj
     {:type :farmer :x 40 :y 40 :state :standing :draw draw-farmer :selectable true}
     {:type :farmer :x 60 :y 40 :state :standing :draw draw-farmer :selectable true}
     ))
@@ -27,13 +27,23 @@
       setup-entities
       setup-mouse-selection))
 
+
+; Update
+
+(defn assoc-entity [state i key value]
+  (assoc-in state [:entities i] key value))
+
+(defn get-entity [state i]
+  (get-in state [:entities i]))
+
+(defn handle-click-ground [state]
+  (if (and (mouse-was-pressed? state) (empty? (:picked state)))
+    state state))
+
 (defn handle-user-commands [state]
   (if (key-was-pressed? state \s)
     (add-timed-flag state :show-background 60)
     state))
-
-
-; Update
 
 (defn update-game [state]
   (-> state
@@ -66,7 +76,7 @@
   (when (flag? state :show-background)
     (q/rect 40 40 20 20 ))
   (when (not (empty? (:selected state)))
-    (draw-selected (first (:selected state))))
+    (draw-selected (get-entity state (first (:selected state)))))
   (when (not (empty? (:picked state)))
     (q/ellipse 400 400 12 12)))
 
