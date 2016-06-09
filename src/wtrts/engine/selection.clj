@@ -6,7 +6,7 @@
   state)
 
 
-(defn- filter-entities-indexed [state pred]
+(defn filter-entities-indexed [state pred]
   (keep-indexed #(when (pred %2) %1) (:entities state)))
 
 (defn- filter-entity-indices [state pred coll]
@@ -15,9 +15,11 @@
 
 (defn- sqr [x] (* x x))
 
+(defn entity-in-circle? [cx cy radius e]
+  (< (+ (sqr (- (:x e) cx)) (sqr (- (:y e) cy))) (sqr radius)))
+
 (defn- mouse-pick? [state e]
-  (let [e-radius 5]
-    (< (+ (sqr (- (:x e) (mouse-x state))) (sqr (- (:y e) (mouse-y state)))) (sqr e-radius))))
+  (entity-in-circle? (mouse-x state) (mouse-y state) 5 e))
 
 (defn- update-mouse-pick [state]
   (assoc state :picked

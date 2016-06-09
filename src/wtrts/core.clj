@@ -57,7 +57,7 @@
       (assoc :destination-y dest-y)))
 
 (defn- stop-walking [e]
-  (assoc e :state :standing))
+    (assoc e :state :standing))
 
 (defn handle-click-ground [state]
     (update-selected-entities state start-walking (mouse-x state) (mouse-y state)))
@@ -110,12 +110,27 @@
 (defn update-entities [entities]
   (into [] (map update-entity entities)))
 
+(defn- entity-can-see? [e]
+  (contains? #{:farmer :chopper} (:type e)))
+
+(defn- update-entity-line-of-sight [state e]
+  (if (entity-can-see? e)
+    (assoc e :los
+      (filter-entities-indexed state (partial entity-in-circle? (:x e) (:y e) 30)))
+    e))
+
+(defn update-line-of-sight [state]
+  (assoc
+    state :entities
+    (into [] (map (partial update-entity-line-of-sight state) (:entities state)))))
+
 (defn update-game [state]
   (-> state
       (update-keyboard [\a \s])
       update-mouse
       update-flags
       update-mouse-selection
+      update-line-of-sight
       handle-user-commands
       (update :entities update-entities)
       ))
