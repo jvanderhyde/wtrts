@@ -13,10 +13,16 @@
   (q/fill 255 255 255)
   (q/ellipse (int (e :x)) (int (e :y)) 12 12 ))
 
+(defn draw-tree [e]
+  (q/stroke 0 100 0)
+  (q/fill 0 100 0)
+  (q/triangle (e :x) (- (e :y) 8) (- (e :x) 7) (+ (e :y) 4) (+ (e :x) 7) (+ (e :y) 4)))
+
 (defn setup-entities [state]
   (update (assoc state :entities []) :entities conj
     {:type :farmer, :x 40, :y 40, :state :standing, :draw draw-farmer, :selectable true}
     {:type :farmer, :x 60, :y 40, :state :standing, :draw draw-farmer, :selectable true}
+    {:type :tree, :x 275, :y 150, :amount 10, :draw draw-tree}
     ))
 
 (defn setup-game []
@@ -36,6 +42,14 @@
 (defn get-entity [state i]
   (get-in state [:entities i]))
 
+(defn update-selected-entities
+  ([state f]
+   (reduce (fn [s i] (update-in s [:entities i] f)) state (:selected state)))
+  ([state f x]
+   (reduce (fn [s i] (update-in s [:entities i] f x)) state (:selected state)))
+  ([state f x y]
+   (reduce (fn [s i] (update-in s [:entities i] f x y)) state (:selected state))))
+
 (defn- start-walking [e dest-x dest-y]
   (-> e
       (assoc :state :walking)
@@ -46,14 +60,29 @@
   (assoc e :state :standing))
 
 (defn handle-click-ground [state]
-  (if (and (mouse-was-pressed? state) (empty? (:picked state)) (not (empty? (:selected state))))
-    (reduce (fn [s i] (update-in s [:entities i] start-walking (mouse-x state) (mouse-y state)))
-            state (:selected state))
+    (update-selected-entities state start-walking (mouse-x state) (mouse-y state)))
+
+(defn change-type [e new-type]
+  (assoc e :type new-type))
+
+(defn handle-click-tree [state entity]
+  (if (= :tree (:type entity))
+    (-> state
+        (update-selected-entities start-walking (:x entity) (:y entity))
+        (update-selected-entities change-type :chopper))
     state))
 
+(defn action-performed-on-selection [state]
+  (if (empty? (:picked state))
+    (handle-click-ground state)
+    (let [picked-entity (get-entity state (first (:picked state)))]
+      (-> state
+          (handle-click-tree picked-entity)))))
+
 (defn handle-user-commands [state]
-  (-> state
-    handle-click-ground))
+  (if (and (mouse-was-pressed? state) (not (empty? (:selected state))))
+    (action-performed-on-selection state)
+    state))
 
 (defn- sqr [x] (* x x))
 
