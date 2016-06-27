@@ -1,7 +1,8 @@
 (ns wtrts.core
   (:require [wtrts.ui.input :refer :all]
             [wtrts.engine.flags :refer :all]
-            [wtrts.engine.selection :refer :all])
+            [wtrts.engine.selection :refer :all]
+            [wtrts.behaviors :refer :all])
   (:require [quil.core :as q]
             [quil.middleware :as qm]))
 
@@ -20,8 +21,8 @@
 
 (defn setup-entities [state]
   (update (assoc state :entities []) :entities conj
-    {:type :farmer, :x 40, :y 40, :state :standing, :draw draw-farmer, :selectable true}
-    {:type :farmer, :x 60, :y 40, :state :standing, :draw draw-farmer, :selectable true}
+    {:type :farmer, :x 40, :y 40, :behavior walker-behavior, :state (:initial walker-behavior), :draw draw-farmer, :selectable true}
+    {:type :farmer, :x 60, :y 40, :behavior walker-behavior, :state (:initial walker-behavior), :draw draw-farmer, :selectable true}
     {:type :tree, :x 275, :y 150, :amount 10, :draw draw-tree}
     ))
 
@@ -56,11 +57,13 @@
       (assoc :destination-x dest-x)
       (assoc :destination-y dest-y)))
 
-(defn- stop-walking [e]
-    (assoc e :state :standing))
+(defn- save-mouse [e x y]
+  (-> e
+      (assoc :mouse-pick-x x)
+      (assoc :mouse-pick-y y)))
 
 (defn handle-click-ground [state]
-    (update-selected-entities state start-walking (mouse-x state) (mouse-y state)))
+    (update-selected-entities state save-mouse (mouse-x state) (mouse-y state)))
 
 (defn change-type [e new-type]
   (assoc e :type new-type))
@@ -68,7 +71,6 @@
 (defn handle-click-tree [state entity]
   (if (= :tree (:type entity))
     (-> state
-        (update-selected-entities start-walking (:x entity) (:y entity))
         (update-selected-entities change-type :chopper))
     state))
 
@@ -84,27 +86,9 @@
     (action-performed-on-selection state)
     state))
 
-(defn- sqr [x] (* x x))
-
-(defn- vector2-normalize [dx dy]
-  (let [norm (q/sqrt (+ (* dx dx) (* dy dy)))]
-    {:x (/ dx norm), :y (/ dy norm)}))
-
-(defn- update-walk [e]
-  (let [walk-speed 1
-        entity-radius 3
-        dx (- (:destination-x e) (:x e))
-        dy (- (:destination-y e) (:y e))
-        heading (vector2-normalize dx dy)]
-    (if (< (+ (sqr dx) (sqr dy)) (sqr entity-radius))
-      (stop-walking e)
-      (-> e
-          (update :x (fn [x] (+ x (* walk-speed (:x heading)))))
-          (update :y (fn [y] (+ y (* walk-speed (:y heading)))))))))
-
 (defn- update-entity [e]
-  (case (:state e)
-    :walking (update-walk e)
+  (if (:behavior e)
+    (update-entity-with-behavior e (:behavior e))
     e))
 
 (defn update-entities [entities]
@@ -173,3 +157,5 @@
   :middleware [qm/fun-mode])
 
 (deref state-for-repl)
+
+
