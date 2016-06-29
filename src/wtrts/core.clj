@@ -51,12 +51,6 @@
   ([state f x y]
    (reduce (fn [s i] (update-in s [:entities i] f x y)) state (:selected state))))
 
-(defn- start-walking [e dest-x dest-y]
-  (-> e
-      (assoc :state :walking)
-      (assoc :destination-x dest-x)
-      (assoc :destination-y dest-y)))
-
 (defn- save-mouse [e x y]
   (-> e
       (assoc :mouse-pick-x x)
@@ -97,16 +91,17 @@
 (defn- entity-can-see? [e]
   (contains? #{:farmer :chopper} (:type e)))
 
-(defn- update-entity-line-of-sight [state e]
+(defn- update-entity-line-of-sight [state i e]
   (if (entity-can-see? e)
     (assoc e :los
-      (filter-entities-indexed state (partial entity-in-circle? (:x e) (:y e) 30)))
+      (filter (fn [x] (not= x i))
+              (filter-entities-indexed state (partial entity-in-circle? (:x e) (:y e) 30))))
     e))
 
 (defn update-line-of-sight [state]
   (assoc
     state :entities
-    (into [] (map (partial update-entity-line-of-sight state) (:entities state)))))
+    (into [] (map-indexed (partial update-entity-line-of-sight state) (:entities state)))))
 
 (defn update-game [state]
   (-> state

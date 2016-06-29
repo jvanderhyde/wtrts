@@ -29,25 +29,6 @@
 
 (def chop-time 30)
 
-'(defbehavior chopper-behavior
-  [[(state=? :ready-to-chop) (val= :wood-carrying :wood-capacity)]
-   [(state-transition :walking-to-base)]
-   [(state=? :ready-to-chop) (val< :wood-carrying :wood-capacity)]
-   [(state-transition :chopping) (add-timed-flag :chopping chop-time)]])
-
-(defn chopper-behavior-fn [e]
-  (let [state=? (fn [key] (= (get e :state) key))
-        val= (fn [key1 key2] (= (get e key1) (get e key2)))
-        val< (fn [key1 key2] (< (get e key1) (get e key2)))]
-    (cond (and (state=? :ready-to-chop)
-               (val= :wood-carrying :wood-capacity))
-          (-> e (assoc :state :walking-to-base))
-          (and (state=? :ready-to-chop)
-               (val< :wood-carrying :wood-capacity))
-          (-> e
-              (assoc :state :chopping)
-              (add-timed-flag :chopping chop-time)))))
-
 (def chopper-behavior
   {:ready-to-chop
    [{:condition? (fn [e] (= (:wood-carrying e) (:wood-capacity e)))
@@ -60,6 +41,9 @@
    :walking-to-chop []
    :walking-up-to-tree []
    :idle []})
+
+
+;Walker example behavior
 
 (defn- set-destination [e]
   (-> e
@@ -106,6 +90,8 @@
                             (dissoc :mouse-pick-x :mouse-pick-y)))}]}
    :initial :idle})
 
+
+; Tests
 
 (def ent1 (set-behavior {:type :farmer, :x 40, :y 40, :mouse-pick-x 0, :mouse-pick-y 0} walker-behavior))
 ent1
