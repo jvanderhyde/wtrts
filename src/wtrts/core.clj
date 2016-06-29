@@ -19,10 +19,15 @@
   (q/fill 0 100 0)
   (q/triangle (e :x) (- (e :y) 8) (- (e :x) 7) (+ (e :y) 4) (+ (e :x) 7) (+ (e :y) 4)))
 
+(defn create-farmer [x y]
+  (-> {:type :farmer, :x x, :y y, :draw draw-farmer, :selectable true}
+      (set-behavior walker-behavior)
+      (add-behavior-action walker-behavior-action)))
+
 (defn setup-entities [state]
   (update (assoc state :entities []) :entities conj
-    {:type :farmer, :x 40, :y 40, :behavior walker-behavior, :state (:initial walker-behavior), :draw draw-farmer, :selectable true}
-    {:type :farmer, :x 60, :y 40, :behavior walker-behavior, :state (:initial walker-behavior), :draw draw-farmer, :selectable true}
+    (create-farmer 40 40)
+    (create-farmer 60 40)
     {:type :tree, :x 275, :y 150, :amount 10, :draw draw-tree}
     ))
 
@@ -80,10 +85,13 @@
     (action-performed-on-selection state)
     state))
 
+(defn- update-entity-f [e k f]
+  (if (k e) (f e (k e)) e))
+
 (defn- update-entity [e]
-  (if (:behavior e)
-    (update-entity-with-behavior e (:behavior e))
-    e))
+  (-> e
+      (update-entity-f :behavior update-entity-with-behavior)
+      (update-entity-f :actions update-entity-with-actions)))
 
 (defn update-entities [entities]
   (into [] (map update-entity entities)))
@@ -153,4 +161,4 @@
 
 (deref state-for-repl)
 
-
+;(clojure.pprint/pprint (deref state-for-repl))

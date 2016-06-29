@@ -6,6 +6,11 @@
       (assoc :behavior behavior)
       (assoc :state (:initial behavior))))
 
+(defn add-behavior-action [e action]
+  (if (:actions e)
+    (update e :actions conj action)
+    (assoc e :actions [action])))
+
 (defn- state-transition [e trs]
   (if (empty? trs)
     e
@@ -18,14 +23,15 @@
         (recur e (rest trs))))
     ))
 
-(defn- update-entity [e ups]
-  (if (empty? ups)
-    e
-    ((:update (first ups)) e)))
+(defn- update-entity [e up]
+  (if up (up e) e))
 
 (defn update-entity-with-behavior [e b]
-  (let [trans-e (state-transition e (filter :condition? (get (:states b) (:state e))))]
-    (update-entity trans-e (filter :update (get (:states b) (:state trans-e))))))
+  (state-transition e (get (:states b) (:state e))))
+
+(defn update-entity-with-actions [e actions]
+  (if (empty? actions) e
+    (recur (update-entity e (get (first actions) (:state e))) (rest actions))))
 
 (def chop-time 30)
 
@@ -80,8 +86,7 @@
    {:walking
     [{:condition? reached-destination?
       :transition :idle
-      :e-effect clear-destination}
-     {:update update-walk}]
+      :e-effect clear-destination}]
     :idle
     [{:condition? (fn [e] (:mouse-pick-x e))
       :transition :walking
@@ -90,12 +95,16 @@
                             (dissoc :mouse-pick-x :mouse-pick-y)))}]}
    :initial :idle})
 
+(def walker-behavior-action
+  {:walking update-walk})
 
 ; Tests
 
-(def ent1 (set-behavior {:type :farmer, :x 40, :y 40, :mouse-pick-x 0, :mouse-pick-y 0} walker-behavior))
+(def ent1a (set-behavior {:type :farmer, :x 40, :y 40, :mouse-pick-x 0, :mouse-pick-y 0} walker-behavior))
+(def ent1 (add-behavior-action ent1a walker-behavior-action))
 ent1
-(def ent2 (update-entity-with-behavior ent1 (:behavior ent1)))
+(def ent2a (update-entity-with-behavior ent1 (:behavior ent1)))
+(def ent2 (update-entity-with-actions ent2a (:actions ent2a)))
 ent2
 (update-entity-with-behavior ent2 (:behavior ent2))
 
