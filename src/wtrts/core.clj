@@ -20,7 +20,7 @@
   (q/triangle (e :x) (- (e :y) 8) (- (e :x) 7) (+ (e :y) 4) (+ (e :x) 7) (+ (e :y) 4)))
 
 (defn create-farmer [x y]
-  (-> {:type :farmer, :x x, :y y, :draw draw-farmer, :selectable true}
+  (-> {:type :farmer, :x x, :y y, :draw draw-farmer, :selectable true, :can-see true}
       (set-behavior walker-behavior)
       (add-behavior-action walker-behavior-action)))
 
@@ -96,14 +96,13 @@
 (defn update-entities [entities]
   (into [] (map update-entity entities)))
 
-(defn- entity-can-see? [e]
-  (contains? #{:farmer :chopper} (:type e)))
-
 (defn- update-entity-line-of-sight [state i e]
-  (if (entity-can-see? e)
-    (assoc e :los
-      (filter (fn [x] (not= x i))
-              (filter-entities-indexed state (partial entity-in-circle? (:x e) (:y e) 30))))
+  (if (:can-see e)
+    (-> e
+        (assoc :los
+          (filter (fn [x] (not= x i))
+                  (filter-entities-indexed state (partial entity-in-circle? (:x e) (:y e) 30))))
+        (assoc :los-entities (get-entities-by-index state (:los e) [:type :x :y])))
     e))
 
 (defn update-line-of-sight [state]
@@ -161,4 +160,4 @@
 
 (deref state-for-repl)
 
-;(clojure.pprint/pprint (deref state-for-repl))
+(clojure.pprint/pprint (deref state-for-repl))

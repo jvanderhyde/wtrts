@@ -12,6 +12,11 @@
 (defn- filter-entity-indices [state pred coll]
   (filter (fn [i] (pred (get-in state [:entities i]))) coll))
 
+(defn get-entities-by-index [state coll keys]
+
+    (reduce (fn [c i] (conj c (select-keys (get-in state [:entities i]) keys))) [] coll)
+    )
+
 
 (defn- sqr [x] (* x x))
 
@@ -40,9 +45,12 @@
 
 (filter-entity-indices {:entities [{:selectable true} {:selectable true}]} :selectable [0])
 
+(get-entities-by-index {:entities [{:a 1} {:b 2} {:a 3}]} [1 0] [:a])
+
 (update-mouse-select {:entities [{:selectable true} {:selectable true}]
                       :mouse {:pressed true, :first-press true, :x 62, :y 41}
                       :picked [1]})
 (update-mouse-select {:entities [{:selectable true} {:selectable true}]
                       :mouse {:pressed true, :first-press true, :x 62, :y 41}
                       :picked [] :selected [1]})
+
