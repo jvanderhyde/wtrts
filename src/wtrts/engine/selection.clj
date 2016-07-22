@@ -13,10 +13,7 @@
   (filter (fn [i] (pred (get-in state [:entities i]))) coll))
 
 (defn get-entities-by-index [state coll keys]
-
-    (reduce (fn [c i] (conj c (select-keys (get-in state [:entities i]) keys))) [] coll)
-    )
-
+  (reduce (fn [c i] (conj c (select-keys (get-in state [:entities i]) keys))) [] coll))
 
 (defn- sqr [x] (* x x))
 

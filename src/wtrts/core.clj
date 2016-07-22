@@ -158,6 +158,6 @@
   ;:features [:keep-on-top]
   :middleware [qm/fun-mode])
 
-(deref state-for-repl)
+state-for-repl
 
 (clojure.pprint/pprint (deref state-for-repl))
