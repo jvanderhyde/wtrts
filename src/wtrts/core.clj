@@ -96,20 +96,6 @@
 (defn update-entities [entities]
   (into [] (map update-entity entities)))
 
-(defn- update-entity-line-of-sight [state i e]
-  (if (:can-see e)
-    (-> e
-        (assoc :los
-          (filter (fn [x] (not= x i))
-                  (filter-entities-indexed state (partial entity-in-circle? (:x e) (:y e) 30))))
-        (assoc :los-entities (get-entities-by-index state (:los e) [:type :x :y])))
-    e))
-
-(defn update-line-of-sight [state]
-  (assoc
-    state :entities
-    (into [] (map-indexed (partial update-entity-line-of-sight state) (:entities state)))))
-
 (defn update-game [state]
   (-> state
       (update-keyboard [\a \s])

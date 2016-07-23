@@ -6,6 +6,8 @@
   state)
 
 
+; Utilities for accessing entities by index
+
 (defn filter-entities-indexed [state pred]
   (keep-indexed #(when (pred %2) %1) (:entities state)))
 
@@ -14,6 +16,9 @@
 
 (defn get-entities-by-index [state coll keys]
   (reduce (fn [c i] (conj c (select-keys (get-in state [:entities i]) keys))) [] coll))
+
+
+; Mouse pick
 
 (defn- sqr [x] (* x x))
 
@@ -39,6 +44,26 @@
   (-> state
       update-mouse-pick
       update-mouse-select))
+
+
+; Line of sight
+
+(defn- update-entity-line-of-sight [state i e]
+  (if (:can-see e)
+    (-> e
+        (assoc :los
+          (filter (fn [x] (not= x i))
+                  (filter-entities-indexed state (partial entity-in-circle? (:x e) (:y e) 30))))
+        (assoc :los-entities (get-entities-by-index state (:los e) [:type :x :y])))
+    e))
+
+(defn update-line-of-sight [state]
+  (assoc
+    state :entities
+    (into [] (map-indexed (partial update-entity-line-of-sight state) (:entities state)))))
+
+
+; Tests
 
 (filter-entity-indices {:entities [{:selectable true} {:selectable true}]} :selectable [0])
 
