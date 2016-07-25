@@ -2,9 +2,29 @@
   (:require [wtrts.ui.input :refer :all]
             [wtrts.engine.flags :refer :all]
             [wtrts.engine.selection :refer :all]
-            [wtrts.behaviors :refer :all])
+            [wtrts.behaviors.util :refer :all]
+            [wtrts.behaviors.walker :refer :all]
+            )
   (:require [quil.core :as q]
             [quil.middleware :as qm]))
+
+
+; Developing behavior
+
+(def chop-time 30)
+
+(def chopper-behavior
+  {:ready-to-chop
+   [{:condition? (fn [e] (= (:wood-carrying e) (:wood-capacity e)))
+     :transition :walking-to-base}
+    {:condition? (fn [e] (< (:wood-carrying e) (:wood-capacity e)))
+     :transition :chopping
+     :e-effect (fn [e] (add-timed-flag e :chopping chop-time))}]
+   :walking-to-base []
+   :chopping []
+   :walking-to-chop []
+   :walking-up-to-tree []
+   :idle []})
 
 
 ; Setup
