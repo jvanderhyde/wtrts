@@ -1,7 +1,7 @@
 (defproject wtrts "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :description "The World's Tiniest Real-Time Strategy Game"
+  :url "https://github.com/jvanderhyde/wtrts"
+  :license {:name "The MIT License"
+            :url "https://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [quil "2.4.0"]])
