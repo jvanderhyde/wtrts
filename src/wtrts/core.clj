@@ -3,7 +3,7 @@
             [wtrts.engine.flags :refer :all]
             [wtrts.engine.selection :refer :all]
             [wtrts.behaviors.util :refer :all]
-            [wtrts.behaviors.walker :refer :all]
+            [wtrts.behaviors.walker :refer [walker-behavior walker-behavior-action]]
             )
   (:require [quil.core :as q]
             [quil.middleware :as qm]))
