@@ -36,7 +36,9 @@
 
 (defn draw-tree [e]
   (q/stroke 0 100 0)
-  (q/fill 0 100 0)
+  (if (< (:amount e) 10)
+    (q/no-fill)
+    (q/fill 0 100 0))
   (q/triangle (e :x) (- (e :y) 8) (- (e :x) 7) (+ (e :y) 4) (+ (e :x) 7) (+ (e :y) 4)))
 
 (defn create-farmer [x y]
